@@ -18,6 +18,7 @@ std::string finish;
 
 short speed = 100;
 int correctValue = 0;
+int distance = 0;
 
 uint8_t finishValue = 0;
 uint8_t splitindex;
@@ -73,13 +74,14 @@ void chatterCallback(const RobotMovement& msg) {
   correctValue = msg.angle;
   moveForwardValue = msg.movement;
   rotateValue = msg.rotation;
-  Serial.print(correctValue);
-  Serial.print("\n");
-  Serial.print(moveForwardValue);
-  Serial.print("\n");
-  Serial.print(rotateValue);
-  Serial.print("\n");
-  Serial.print("\n");
+  distance = msg.distance;
+  // Serial.print(correctValue);
+  // Serial.print("\n");
+  // Serial.print(moveForwardValue);
+  // Serial.print("\n");
+  // Serial.print(rotateValue);
+  // Serial.print("\n");
+  // Serial.print("\n");
 }
 
 ros::Subscriber<RobotMovement> sub("robot_movement", &chatterCallback);
@@ -115,16 +117,16 @@ void loop()
     nh.spinOnce();
     
     if (correctValue <= 45 && correctValue >= -45 && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goForward(speed);        
+        GyroRobot.goForward(distance);        
     }
     else if ((correctValue >= 135 || correctValue <= -135) && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goBackward(speed);        
+        GyroRobot.goBackward(distance);        
     } 
     else if (correctValue > 45 && correctValue < 135 && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goRight(speed);        
+        GyroRobot.goRight(distance);        
     }
     else if ((correctValue < -45 && correctValue > -135) && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goLeft(speed);        
+        GyroRobot.goLeft(distance);        
     } 
     else if (moveForwardValue == 0 && rotateValue == 0)
     {
@@ -133,10 +135,10 @@ void loop()
     else if (rotateValue == 1 && finishValue == 0) {
 
         if (correctValue > 0) {
-            GyroRobot.turnRight(speed);
+            GyroRobot.turnRight(correctValue);
         }
         else if (correctValue < 0) {
-            GyroRobot.turnLeft(speed);
+            GyroRobot.turnLeft(correctValue);
         }
 
         // if (correctValue <= 45 && correctValue >= 0) {
@@ -168,6 +170,7 @@ void loop()
         GyroRobot.stopMovement();
         }
     }
+  delay(50);
 }
   
 
