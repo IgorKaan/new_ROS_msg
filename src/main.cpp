@@ -1,11 +1,13 @@
 #include <WiFi.h>
 #include <ros.h>
 #include "RobotMovement.h"
+#include "ConnectionCfg.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include "math.h"
 #include <I2Cdev.h>
 #include <MotorControl.h>
+#include <Navigation.h>
 #include <stdio.h>
 #include <HardwareSerial.h>
 
@@ -26,6 +28,8 @@ bool rotateValue = 0;
 bool moveForwardValue = 0;
 uint8_t platformNumber = 201;
 uint8_t sensorId;
+uint8_t connection_side_id = 0;
+uint8_t connection_state = 0;
 
 bool moveSide = true;
 
@@ -39,6 +43,8 @@ int status = WL_IDLE_STATUS;
 WiFiClient client;
 
 MotorControl GyroRobot;
+
+Navigation Robot;
 
 class WiFiHardware {
 
@@ -70,21 +76,32 @@ class WiFiHardware {
   }
 };
 
-void chatterCallback(const RobotMovement& msg) {
+void movementCallback(const RobotMovement& msg) {
   correctValue = msg.angle;
   moveForwardValue = msg.movement;
   rotateValue = msg.rotation;
   distance = msg.distance;
-  // Serial.print(correctValue);
-  // Serial.print("\n");
-  // Serial.print(moveForwardValue);
-  // Serial.print("\n");
-  // Serial.print(rotateValue);
-  // Serial.print("\n");
-  // Serial.print("\n");
+  Serial.print(correctValue);
+  Serial.print("\n");
+  Serial.print(moveForwardValue);
+  Serial.print("\n");
+  Serial.print(rotateValue);
+  Serial.print("\n");
+  Serial.print("\n");
 }
 
-ros::Subscriber<RobotMovement> sub("robot_movement", &chatterCallback);
+void connectionCallback(const ConnectionCfg& msg) {
+  connection_side_id = msg.connection_side_id;
+  connection_state = msg.connection_state;
+  Serial.print(connection_side_id);
+  Serial.print("\n");
+  Serial.print(connection_state);
+  Serial.print("\n");
+  Serial.print("\n");
+}
+
+ros::Subscriber<RobotMovement> sub("robot_movement", &movementCallback);
+ros::Subscriber<ConnectionCfg> sub_1("robot_movement1", &connectionCallback);
 ros::NodeHandle_<WiFiHardware> nh;
 
 void setupWiFi()
@@ -107,9 +124,9 @@ void setup()
     Serial.begin(115200);
     GyroRobot = MotorControl();
     setupWiFi();
-    // s.attach(2);  // PWM pin
     nh.initNode();
     nh.subscribe(sub);
+    nh.subscribe(sub_1);
 }
 
 void loop()
@@ -139,7 +156,11 @@ void loop()
         }
         else if (correctValue < 0) {
             GyroRobot.turnLeft(correctValue);
-        }
+    }
+      else if ((abs(correctValue)<=3) && distance<=5) {
+        GyroRobot.stopMovement();
+        delay(5000);
+    }
 
         // if (correctValue <= 45 && correctValue >= 0) {
         //     GyroRobot.turnRight(speed);
@@ -170,7 +191,7 @@ void loop()
         GyroRobot.stopMovement();
         }
     }
-  delay(50);
+  delay(20);
 }
   
 

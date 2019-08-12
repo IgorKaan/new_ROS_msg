@@ -24,82 +24,107 @@ void MotorControl::setupMotor()
 
 void MotorControl::goForward(short motorSpeed)
 {
-    if (motorSpeed >= 100) {
+    if (motorSpeed >= 200) {
         M1.setmotor(_CW, PWM);
         M2.setmotor(_CW, PWM);
         M3.setmotor(_CCW, PWM);
         M4.setmotor(_CCW, PWM);
     }
-    else if (motorSpeed < 100) {
-        M1.setmotor(_CW, PWML);
-        M2.setmotor(_CW, PWML);
-        M3.setmotor(_CCW, PWML);
-        M4.setmotor(_CCW, PWML);
+    else if (motorSpeed < 200) {
+        short speed;
+        short kp;
+        kp = motorSpeed/200;
+        speed = PWM*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CW, speed);
+        M2.setmotor(_CW, speed);
+        M3.setmotor(_CCW, speed);
+        M4.setmotor(_CCW, speed);
     }
 }
 
 void MotorControl::goBackward(short motorSpeed)
 {
-    if (motorSpeed >= 100) {
+    if (motorSpeed >= 200) {
         M1.setmotor(_CCW, PWM);
         M2.setmotor(_CCW, PWM);
         M3.setmotor(_CW, PWM);
         M4.setmotor(_CW, PWM);
     }
-    else if (motorSpeed < 100) {
-        M1.setmotor(_CCW, PWML);
-        M2.setmotor(_CCW, PWML);
-        M3.setmotor(_CW, PWML);
-        M4.setmotor(_CW, PWML);
+    else if (motorSpeed < 200) {
+        short speed;
+        short kp;
+        kp = motorSpeed/200;
+        speed = PWM*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CCW, speed);
+        M2.setmotor(_CCW, speed);
+        M3.setmotor(_CW, speed);
+        M4.setmotor(_CW, speed);
     }
     
 }
 
 void MotorControl::goRight(short motorSpeed)
 {
-    if (motorSpeed >= 100) {
+    if (motorSpeed >= 200) {
         M1.setmotor(_CCW, PWM);
         M2.setmotor(_CW, PWM);
         M3.setmotor(_CCW, PWM);
         M4.setmotor(_CW, PWM);
     }
-    else if (motorSpeed < 100) {
-        M1.setmotor(_CCW, PWML);
-        M2.setmotor(_CW, PWML);
-        M3.setmotor(_CCW, PWML);
-        M4.setmotor(_CW, PWML);
+    else if (motorSpeed < 200) {
+        short speed;
+        short kp;
+        kp = motorSpeed/200;
+        speed = PWM*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CCW, speed);
+        M2.setmotor(_CW, speed);
+        M3.setmotor(_CCW, speed);
+        M4.setmotor(_CW, speed);
     }
 }
 
 void MotorControl::goLeft(short motorSpeed)
 {
-    if (motorSpeed >= 100) {
+    if (motorSpeed >= 200) {
         M1.setmotor(_CW, PWM);
         M2.setmotor(_CCW, PWM);
         M3.setmotor(_CW, PWM);
         M4.setmotor(_CCW, PWM);
     }
-    else if (motorSpeed < 100) {
-        M1.setmotor(_CW, PWML);
-        M2.setmotor(_CCW, PWML);
-        M3.setmotor(_CW, PWML);
-        M4.setmotor(_CCW, PWML);
+    else if (motorSpeed < 200) {
+        short speed;
+        short kp;
+        kp = motorSpeed/200;
+        speed = PWM*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CW, speed);
+        M2.setmotor(_CCW, speed);
+        M3.setmotor(_CW, speed);
+        M4.setmotor(_CCW, speed);
     }
 }
 
 void MotorControl::turnLeft(short motorSpeed)
 {
-    if (abs(motorSpeed)>15) {
+    if (abs(motorSpeed)>20) {
         M1.setmotor(_CCW, PWMR);
         M2.setmotor(_CCW, PWMR);
         M3.setmotor(_CCW, PWMR);
         M4.setmotor(_CCW, PWMR);
     }
-    else {
-        M1.setmotor(_CCW, PWMRL);
-        M2.setmotor(_CCW, PWMRL);
-        M3.setmotor(_CCW, PWMRL);
-        M4.setmotor(_CCW, PWMRL);    
+    else if (abs(motorSpeed)<=20) {
+        short speed;
+        short kp;
+        kp = motorSpeed/20;
+        speed = PWMR*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CCW, speed);
+        M2.setmotor(_CCW, speed);
+        M3.setmotor(_CCW, speed);
+        M4.setmotor(_CCW, speed);    
     }
 }
 
@@ -111,11 +136,16 @@ void MotorControl::turnRight(short motorSpeed)
         M3.setmotor(_CW, PWMR);
         M4.setmotor(_CW, PWMR);
     }
-    else {
-        M1.setmotor(_CW, PWMRL);
-        M2.setmotor(_CW, PWMRL);
-        M3.setmotor(_CW, PWMRL);
-        M4.setmotor(_CW, PWMRL);
+    else if (abs(motorSpeed)<=20) {
+        short speed;
+        short kp;
+        kp = motorSpeed/20;
+        speed = PWMR*kp;
+        if (speed < 15) {speed = 15;}
+        M1.setmotor(_CW, speed);
+        M2.setmotor(_CW, speed);
+        M3.setmotor(_CW, speed);
+        M4.setmotor(_CW, speed);    
     }
 }
 
