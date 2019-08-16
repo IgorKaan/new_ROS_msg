@@ -16,6 +16,8 @@ class MotorControl
 
         void driveMotor();
 
+        void navigation(bool moveforwardValue, bool rotateValue ,short correctValue);
+
         void goForward(short motorSpeed);
 
         void goBackward(short motorSpeed);

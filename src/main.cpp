@@ -19,8 +19,8 @@ std::string rotate;
 std::string finish;
 
 short speed = 100;
-int correctValue = 0;
-int distance = 0;
+short correctValue = 0;
+short distance = 0;
 
 uint8_t finishValue = 0;
 uint8_t splitindex;
@@ -33,10 +33,13 @@ uint8_t connection_state = 0;
 
 bool moveSide = true;
 
-const char* ssid = "213_Guest";
-const char* password = "11081975";
+// const char* ssid = "213_Guest";
+// const char* password = "11081975";
 
-IPAddress server(192, 168, 1, 44); // ip of your ROS server
+const char* ssid = "Keenetic-SPIRAS";
+const char* password = "1122334455";
+
+IPAddress server(192, 168, 1, 65); // ip of your ROS server
 IPAddress ip_address;
 int status = WL_IDLE_STATUS;
 
@@ -81,27 +84,28 @@ void movementCallback(const RobotMovement& msg) {
   moveForwardValue = msg.movement;
   rotateValue = msg.rotation;
   distance = msg.distance;
-  Serial.print(correctValue);
-  Serial.print("\n");
-  Serial.print(moveForwardValue);
-  Serial.print("\n");
-  Serial.print(rotateValue);
-  Serial.print("\n");
-  Serial.print("\n");
+  //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
+  // Serial.print(correctValue);
+  // Serial.print("\n");
+  // Serial.print(moveForwardValue);
+  // Serial.print("\n");
+  // Serial.print(rotateValue);
+  // Serial.print("\n");
+  // Serial.print("\n");
 }
 
 void connectionCallback(const ConnectionCfg& msg) {
   connection_side_id = msg.connection_side_id;
   connection_state = msg.connection_state;
-  Serial.print(connection_side_id);
-  Serial.print("\n");
-  Serial.print(connection_state);
-  Serial.print("\n");
-  Serial.print("\n");
+  // Serial.print(connection_side_id);
+  // Serial.print("\n");
+  // Serial.print(connection_state);
+  // Serial.print("\n");
+  // Serial.print("\n");
 }
 
-ros::Subscriber<RobotMovement> sub("robot_movement", &movementCallback);
-ros::Subscriber<ConnectionCfg> sub_1("robot_movement1", &connectionCallback);
+ros::Subscriber<RobotMovement> sub("robot_movement/1", &movementCallback);
+//ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
 ros::NodeHandle_<WiFiHardware> nh;
 
 void setupWiFi()
@@ -121,77 +125,32 @@ void setupWiFi()
 
 void setup()
 {
-    Serial.begin(115200);
+    //Serial.begin(115200);
     GyroRobot = MotorControl();
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
-    nh.subscribe(sub_1);
+    // nh.subscribe(sub_1);
 }
 
 void loop()
 {
-    nh.spinOnce();
-    
-    if (correctValue <= 45 && correctValue >= -45 && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goForward(distance);        
-    }
-    else if ((correctValue >= 135 || correctValue <= -135) && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goBackward(distance);        
-    } 
-    else if (correctValue > 45 && correctValue < 135 && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goRight(distance);        
-    }
-    else if ((correctValue < -45 && correctValue > -135) && moveForwardValue == 1 && rotateValue == 0 && finishValue == 0) {
-        GyroRobot.goLeft(distance);        
-    } 
-    else if (moveForwardValue == 0 && rotateValue == 0)
-    {
-        GyroRobot.stopMovement();
-    }
-    else if (rotateValue == 1 && finishValue == 0) {
-
-        if (correctValue > 0) {
-            GyroRobot.turnRight(correctValue);
-        }
-        else if (correctValue < 0) {
-            GyroRobot.turnLeft(correctValue);
-    }
-      else if ((abs(correctValue)<=3) && distance<=5) {
-        GyroRobot.stopMovement();
-        delay(5000);
-    }
-
-        // if (correctValue <= 45 && correctValue >= 0) {
-        //     GyroRobot.turnRight(speed);
-        // }
-        // else if (correctValue >= -45 && correctValue <= 0) {
-        //     GyroRobot.turnLeft(speed);
-        // }
-        // else if (correctValue >= 135) {
-        //     GyroRobot.turnLeft(speed);       
-        // }
-        // else if (correctValue <= -135) {
-        //     GyroRobot.turnRight(speed);
-        // }
-        // else if (correctValue > 45 && correctValue < 90) {
-        //     GyroRobot.turnLeft(speed);
-        // }
-        // else if (correctValue >= 90 && correctValue < 135) {
-        //     GyroRobot.turnRight(speed);
-        // }
-        // else if (correctValue < -45 && correctValue >= -90) {
-        //     GyroRobot.turnRight(speed);
-        // }
-        // else if (correctValue < -90 && correctValue >= -135) {
-        //     GyroRobot.turnLeft(speed);
-        // }
-        else if (moveForwardValue == 0 && rotateValue == 0)
-        {
-        GyroRobot.stopMovement();
-        }
-    }
-  delay(20);
+  nh.spinOnce();
+  GyroRobot.navigation(moveForwardValue,rotateValue,correctValue);  
+  delay(10);
+  // GyroRobot.goForward(100);
+  // delay(4000);
+  // GyroRobot.goBackward(100);
+  // delay(4000);
+  // GyroRobot.goLeft(100);
+  // delay(4000);
+  // GyroRobot.goRight(100);
+  // delay(4000);
+  // GyroRobot.turnLeft(100);
+  // delay(4000);
+  // GyroRobot.turnRight(100);
+  // delay(4000);
+  //GyroRobot.navigation(0,1,123);
 }
   
 
