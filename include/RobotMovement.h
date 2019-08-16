@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ros/msg.h"
-#include "std_msgs/Header.h"
 
 // namespace rosserial_msgs//
 // {
@@ -13,8 +12,6 @@
   class RobotMovement // : public ros::Msg
   {
     public:
-      // typedef std_msgs::Header _header_type;
-      // _header_type header;
       typedef int16_t _distance_type;
       _distance_type distance;
       typedef int16_t _angle_type;
@@ -25,7 +22,6 @@
       _rotation_type rotation;
 
     RobotMovement():
-      //header(),
       distance(0),
       angle(0),
       movement(0),
@@ -109,8 +105,10 @@
      return offset;
     }
 
-    const char * getType(){ return "mars/RobotMovement"; };
-    const char * getMD5(){ return "e8cce422c0166f0db63d80772d72fe4f"; };
+    const char * getType(){ return "rosserial_python/RobotMovement"; };
+    // const char * getMD5(){ return "e8cce422c0166f0db63d80772d72fe4f"; };
+    const char * getMD5(){ return "e89a5bdfd9596ef6dcd83355c62b5ca6"; };
+
 
   };
 

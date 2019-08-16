@@ -19,8 +19,8 @@ std::string rotate;
 std::string finish;
 
 short speed = 100;
-short correctValue = 0;
-short distance = 0;
+int correctValue = 0;
+int distance = 0;
 
 uint8_t finishValue = 0;
 uint8_t splitindex;
@@ -33,13 +33,13 @@ uint8_t connection_state = 0;
 
 bool moveSide = true;
 
-// const char* ssid = "213_Guest";
-// const char* password = "11081975";
+const char* ssid = "213_Guest";
+const char* password = "11081975";
 
-const char* ssid = "Keenetic-SPIRAS";
-const char* password = "1122334455";
+// const char* ssid = "Keenetic-SPIRAS";
+// const char* password = "1122334455";
 
-IPAddress server(192, 168, 1, 65); // ip of your ROS server
+IPAddress server(192, 168, 1, 72); // ip of your ROS server
 IPAddress ip_address;
 int status = WL_IDLE_STATUS;
 
@@ -104,8 +104,8 @@ void connectionCallback(const ConnectionCfg& msg) {
   // Serial.print("\n");
 }
 
-ros::Subscriber<RobotMovement> sub("robot_movement/1", &movementCallback);
-//ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
+ros::Subscriber<RobotMovement> sub("robot_movement", &movementCallback);
+ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
 ros::NodeHandle_<WiFiHardware> nh;
 
 void setupWiFi()
@@ -125,12 +125,12 @@ void setupWiFi()
 
 void setup()
 {
-    //Serial.begin(115200);
+    Serial.begin(115200);
     GyroRobot = MotorControl();
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
-    // nh.subscribe(sub_1);
+    nh.subscribe(sub_1);
 }
 
 void loop()
@@ -138,18 +138,6 @@ void loop()
   nh.spinOnce();
   GyroRobot.navigation(moveForwardValue,rotateValue,correctValue);  
   delay(10);
-  // GyroRobot.goForward(100);
-  // delay(4000);
-  // GyroRobot.goBackward(100);
-  // delay(4000);
-  // GyroRobot.goLeft(100);
-  // delay(4000);
-  // GyroRobot.goRight(100);
-  // delay(4000);
-  // GyroRobot.turnLeft(100);
-  // delay(4000);
-  // GyroRobot.turnRight(100);
-  // delay(4000);
   //GyroRobot.navigation(0,1,123);
 }
   

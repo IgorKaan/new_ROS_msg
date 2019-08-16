@@ -65,7 +65,7 @@
      return offset;
     }
 
-    const char * getType(){ return "mars/ConnectionCfg"; };
+    const char * getType(){ return "rosserial_python/ConnectionCfg"; };
     const char * getMD5(){ return "eb72a1fce3a16fd32230a82c22b6cc63"; };
 
   };
