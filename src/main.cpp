@@ -1,37 +1,25 @@
-#include <WiFi.h>
-#include <ros.h>
+#include <HardwareSerial.h>
 #include "RobotMovement.h"
 #include "ConnectionCfg.h"
+#include <MotorControl.h>
+#include <Connection.h>
 #include <Arduino.h>
+#include <string.h>
+#include <I2Cdev.h>
+#include <WiFi.h>
 #include <Wire.h>
 #include "math.h"
-#include <I2Cdev.h>
-#include <MotorControl.h>
-#include <Navigation.h>
-#include <stdio.h>
-#include <HardwareSerial.h>
+#include <ros.h>
 
-std::string receivedData;
-std::string sign;
-std::string angle;
-std::string move;
-std::string rotate;
-std::string finish;
-
-short speed = 100;
+int status = WL_IDLE_STATUS;
 int correctValue = 0;
 int distance = 0;
 
-uint8_t finishValue = 0;
-uint8_t splitindex;
-bool rotateValue = 0;
-bool moveForwardValue = 0;
-uint8_t platformNumber = 201;
-uint8_t sensorId;
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
 
-bool moveSide = true;
+bool rotateValue = 0;
+bool moveForwardValue = 0;
 
 const char* ssid = "213_Guest";
 const char* password = "11081975";
@@ -39,15 +27,14 @@ const char* password = "11081975";
 // const char* ssid = "Keenetic-SPIRAS";
 // const char* password = "1122334455";
 
-IPAddress server(192, 168, 1, 72); // ip of your ROS server
+IPAddress server(192, 168, 1, 72); 
 IPAddress ip_address;
-int status = WL_IDLE_STATUS;
 
 WiFiClient client;
 
-MotorControl GyroRobot;
+MotorControl modulePlatform;
 
-Navigation Robot;
+Connection Robot;
 
 class WiFiHardware {
 
@@ -55,8 +42,9 @@ class WiFiHardware {
   WiFiHardware() {};
 
   void init() {
-    // do your initialization here. this probably includes TCP server/client setup
+  
     client.connect(server, 11411);
+
   }
 
   // read a byte from the serial port. -1 = failure
@@ -126,19 +114,19 @@ void setupWiFi()
 void setup()
 {
     Serial.begin(115200);
-    GyroRobot = MotorControl();
+    modulePlatform = MotorControl();
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
     nh.subscribe(sub_1);
+    //nh.publish(1,"2424");
 }
 
 void loop()
 {
   nh.spinOnce();
-  GyroRobot.navigation(moveForwardValue,rotateValue,correctValue);  
+  modulePlatform.navigation(moveForwardValue,rotateValue,correctValue);  
   delay(10);
-  //GyroRobot.navigation(0,1,123);
 }
   
 
