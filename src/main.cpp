@@ -73,13 +73,6 @@ void movementCallback(const RobotMovement& msg) {
   rotateValue = msg.rotation;
   distance = msg.distance;
   //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
-  // Serial.print(correctValue);
-  // Serial.print("\n");
-  // Serial.print(moveForwardValue);
-  // Serial.print("\n");
-  // Serial.print(rotateValue);
-  // Serial.print("\n");
-  // Serial.print("\n");
 }
 
 void connectionCallback(const ConnectionCfg& msg) {
