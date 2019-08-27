@@ -1,6 +1,7 @@
 #include "Connection.h"
 #include <MotorControl.h>
 
+#define intpin 124
 
 void Connection::Connect(short aDistaance, short bDictacnce, short cDistance) {
 

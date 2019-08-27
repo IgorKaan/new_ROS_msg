@@ -30,6 +30,16 @@ class MotorControl
 
         void turnRight(short motorSpeed);
 
+        void leftForward(short motorSpeed);
+
+        void rightForward(short motorSpeed);
+
+        void leftBackward(short motorSpeed);
+
+        void rightBackward(short motorSpeed);
+
+        void calibrate(short motorSpeed);
+
         void stopMovement();
 
     private:

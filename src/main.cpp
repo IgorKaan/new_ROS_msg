@@ -1,14 +1,9 @@
-#include <HardwareSerial.h>
 #include "RobotMovement.h"
 #include "ConnectionCfg.h"
 #include <MotorControl.h>
 #include <Connection.h>
 #include <Arduino.h>
-#include <string.h>
-#include <I2Cdev.h>
 #include <WiFi.h>
-#include <Wire.h>
-#include "math.h"
 #include <ros.h>
 
 int status = WL_IDLE_STATUS;
@@ -35,6 +30,8 @@ WiFiClient client;
 MotorControl modulePlatform;
 
 Connection Robot;
+
+//Connection* Robot1;
 
 class WiFiHardware {
 
@@ -117,9 +114,19 @@ void setup()
 
 void loop()
 {
-  nh.spinOnce();
-  modulePlatform.navigation(moveForwardValue,rotateValue,correctValue);  
-  delay(10);
+  // nh.spinOnce();
+  // modulePlatform.navigation(moveForwardValue,rotateValue,correctValue);  
+  // delay(10);
+  // modulePlatform.leftForward(50);
+  // delay(5000);
+  // modulePlatform.rightForward(50);
+  // delay(5000);
+  // modulePlatform.leftBackward(50);
+  // delay(5000);
+  // modulePlatform.rightBackward(50);
+  // delay(5000);
+  modulePlatform.calibrate(50);
+  
 }
   
 
