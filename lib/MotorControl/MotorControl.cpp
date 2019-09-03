@@ -7,9 +7,9 @@
 #define M2_Adress (0x2B)
 #define M3_Adress (0x2C)  
 #define M4_Adress (0x2D)
-#define PWM 22 //35
+#define PWM 17 //35
 #define PWML 15
-#define PWMR 17 //30
+#define PWMR  15//30
 #define PWMRL 15
 
 Motor M1(M1_Adress, _MOTOR_B, 1000);
@@ -17,9 +17,9 @@ Motor M2(M2_Adress, _MOTOR_B, 1000);
 Motor M3(M3_Adress, _MOTOR_B, 1000);
 Motor M4(M4_Adress, _MOTOR_B, 1000);
 
-void MotorControl::navigation(bool moveForwardValue, bool rotateValue ,short correctValue) 
+void MotorControl::navigation(bool moveForwardValue, bool rotateValue ,short correctValue, float actionTime) 
 {
-    if (moveForwardValue == 1) {
+    if ((moveForwardValue == 1) && (rotateValue == 0)) {
         
         // if (correctValue <= 45 && correctValue >= -45) {
 
@@ -42,84 +42,119 @@ void MotorControl::navigation(bool moveForwardValue, bool rotateValue ,short cor
 
         // } 
 
-        if (correctValue <= 25 && correctValue >= -25) {
+        if (correctValue <= 30 && correctValue >= -30) {
 
-            MotorControl::goForward(30); 
-
-        }
-
-        if (correctValue < -25 && correctValue > -65) {
-
-            MotorControl::leftForward(30); 
+            //*flag = 0;
+            MotorControl::goForward(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            
 
         }
 
-        if (correctValue > 25 && correctValue < 65) {
+        if (correctValue < -30 && correctValue > -60) {
 
-            MotorControl::rightForward(30); 
+            //*flag = 0;
+            MotorControl::leftForward(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            ;
 
         }
 
-        else if (correctValue >= 155 || correctValue <= -155) {
+        if (correctValue > 30 && correctValue < 60) {
 
-            MotorControl::goBackward(30); 
+            //*flag = 0;
+            MotorControl::rightForward(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            
+
+        }
+
+        else if (correctValue >= 150 || correctValue <= -150) {
+
+            //*flag = 0;
+            MotorControl::goBackward(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+             
 
         } 
 
-        else if (correctValue > -155 || correctValue < -115) {
+        else if (correctValue > -150 && correctValue < -120) {
 
-            MotorControl::leftBackward(30); 
-
-        } 
-
-        else if (correctValue > 115 || correctValue < 155) {
-
-            MotorControl::rightBackward(30); 
+            //*flag = 0;
+            MotorControl::leftBackward(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake(); 
+            
 
         } 
 
-        else if (correctValue >= 65 && correctValue <= 115) {
+        else if (correctValue > 120 && correctValue < 150) {
 
-            MotorControl::goRight(30);    
+            //*flag = 0;
+            MotorControl::rightBackward(PWM); 
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            
+
+        } 
+
+        else if (correctValue >= 60 && correctValue <= 120) {
+
+            //*flag = 0;
+            MotorControl::goRight(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+                
 
         }
 
-        else if (correctValue <= -65 && correctValue >= -115) {
+        else if (correctValue <= -60 && correctValue >= -120) {
 
-            MotorControl::goLeft(30);        
+            //*flag = 0;
+            MotorControl::goLeft(PWM);
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+                  
 
         } 
 
         else if (moveForwardValue == 0 && rotateValue == 0) {
 
+            //*flag = 0;
             MotorControl::stopMovement();
+            
 
         }
     }
-    else if (rotateValue == 1) {
+    else if ((moveForwardValue == 0) && (rotateValue == 1)) {
 
         if (correctValue > 0) {
 
+            //*flag = 0;
             MotorControl::turnRight(correctValue);
-
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            
         }
         else if (correctValue < 0) {
 
+            //*flag = 0;
             MotorControl::turnLeft(correctValue);
-
-        }
-        else if ((abs(correctValue)<=3)) {
-
-        MotorControl::stopMovement();
-        delay(5000);
-
-        }
-        else if (moveForwardValue == 0 && rotateValue == 0) {
-
-        MotorControl::stopMovement();
-
+            delay(actionTime*0.7); 
+            MotorControl::brake();
+            
         }
     }   
+    else if (moveForwardValue == 0 && rotateValue == 0) {
+
+        //*flag = 0;
+        MotorControl::stopMovement();
+        
+    }
 }
 
 void MotorControl::goForward(short motorSpeed)
@@ -141,6 +176,10 @@ void MotorControl::goForward(short motorSpeed)
         M3.setmotor(_CCW, speed);
         M4.setmotor(_CCW, speed);
     }
+    // M1.setmotor(_CW, motorSpeed);
+    // M2.setmotor(_CW, motorSpeed);
+    // M3.setmotor(_CCW, motorSpeed);
+    // M4.setmotor(_CCW, motorSpeed);
 }
 
 void MotorControl::leftForward(short motorSpeed)
@@ -305,7 +344,7 @@ void MotorControl::turnLeft(short motorSpeed)
         short kp;
         kp = motorSpeed/30;
         speed = PWMR*kp;
-        if (speed < 10) {speed = 10;}
+        if (speed < 15) {speed = 15;}
         M1.setmotor(_CW, speed);
         M2.setmotor(_CW, speed);
         M3.setmotor(_CW, speed);
@@ -326,7 +365,7 @@ void MotorControl::turnRight(short motorSpeed)
         short kp;
         kp = motorSpeed/30;
         speed = PWMR*kp;
-        if (speed < 10) {speed = 10;}
+        if (speed < 15) {speed = 15;}
         M1.setmotor(_CCW, speed);
         M2.setmotor(_CCW, speed);
         M3.setmotor(_CCW, speed);
@@ -347,12 +386,20 @@ void MotorControl::calibrate(short motorSpeed)
     delay(50);      
 }
 
+void MotorControl::brake()
+{
+    M1.setmotor(_SHORT_BRAKE, 0);
+    M2.setmotor(_SHORT_BRAKE, 0);
+    M3.setmotor(_SHORT_BRAKE, 0);
+    M4.setmotor(_SHORT_BRAKE, 0);
+}
+
 void MotorControl::stopMovement()
 {
-    M1.setmotor(_CW, 0);
-    M2.setmotor(_CW, 0);
-    M3.setmotor(_CCW, 0);
-    M4.setmotor(_CCW, 0);
+    M1.setmotor(_STOP, 0);
+    M2.setmotor(_STOP, 0);
+    M3.setmotor(_STOP, 0);
+    M4.setmotor(_STOP, 0);
 }
 
 

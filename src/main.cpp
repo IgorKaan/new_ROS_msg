@@ -1,14 +1,25 @@
+#include <std_msgs/String.h>
 #include "RobotMovement.h"
 #include "ConnectionCfg.h"
+#include "ActionAtTime.h"
 #include <MotorControl.h>
 #include <Connection.h>
 #include <Arduino.h>
+#include <sstream>
 #include <WiFi.h>
+#include "Bool.h"
 #include <ros.h>
+
+using namespace std_msgs;
 
 int status = WL_IDLE_STATUS;
 int correctValue = 0;
 int distance = 0;
+float actionTime = 0;
+
+short a,b,c;
+bool flag = 1;
+//bool* flag;
 
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
@@ -16,20 +27,20 @@ uint8_t connection_state = 0;
 bool rotateValue = 0;
 bool moveForwardValue = 0;
 
-const char* ssid = "213_Guest";
-const char* password = "11081975";
+// const char* ssid = "213_Guest";
+// const char* password = "11081975";
 
-// const char* ssid = "Keenetic-SPIRAS";
-// const char* password = "1122334455";
+const char* ssid = "Keenetic-SPIRAS";
+const char* password = "1122334455";
 
-IPAddress server(192, 168, 1, 72); 
+IPAddress server(192, 168, 1, 65); 
 IPAddress ip_address;
 
 WiFiClient client;
 
 MotorControl modulePlatform;
 
-Connection Robot;
+Connection robot;
 
 //Connection* Robot1;
 
@@ -69,6 +80,25 @@ void movementCallback(const RobotMovement& msg) {
   moveForwardValue = msg.movement;
   rotateValue = msg.rotation;
   distance = msg.distance;
+  
+  //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
+}
+
+// void connectData(const Bool& msg) {
+//   correctValue = msg.data;
+// }
+
+void timeMovementCallback(const ActionAtTime& msg) {
+  correctValue = msg.angle;
+  moveForwardValue = msg.movement;
+  rotateValue = msg.rotation;
+  actionTime = msg.time;
+  Serial.print(correctValue);
+  Serial.print("\n");
+  Serial.print(actionTime);
+  Serial.print("\n");
+  Serial.print("\n");
+  //flag = 1;
   //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
 }
 
@@ -82,9 +112,17 @@ void connectionCallback(const ConnectionCfg& msg) {
   // Serial.print("\n");
 }
 
-ros::Subscriber<RobotMovement> sub("robot_movement", &movementCallback);
-ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
+// ros::Subscriber<RobotMovement> sub("robot_movement/9", &movementCallback);
+// ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
+
+ros::Subscriber<ActionAtTime> sub("robot_movement/0", &timeMovementCallback);
 ros::NodeHandle_<WiFiHardware> nh;
+// ros::NodeHandle_<WiFiHardware> n;
+//ros::Publisher pub = nh.advertise<std_msgs::Bool>("robotConnect", 1000);
+// std_msgs::String str;
+// str.data = "hello world";
+// pub.publish(str);
+   
 
 void setupWiFi()
 {
@@ -108,25 +146,26 @@ void setup()
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
-    nh.subscribe(sub_1);
+    //nh.subscribe(sub_1);
     //nh.publish(1,"2424");
+    
 }
 
 void loop()
-{
-  // nh.spinOnce();
-  // modulePlatform.navigation(moveForwardValue,rotateValue,correctValue);  
-  // delay(10);
-  // modulePlatform.leftForward(50);
-  // delay(5000);
-  // modulePlatform.rightForward(50);
-  // delay(5000);
-  // modulePlatform.leftBackward(50);
-  // delay(5000);
-  // modulePlatform.rightBackward(50);
-  // delay(5000);
-  modulePlatform.calibrate(50);
+{ 
   
+  nh.spinOnce();
+  modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
+  moveForwardValue = 0;
+  rotateValue = 0;
+  correctValue = 0;
+  actionTime = 0;
+    // modulePlatform.navigation(1,0,15, 5000, &flag); 
+    // Serial.println(flag);
+  // modulePlatform.navigation(1,0,15, 10000); 
+  //modulePlatform.navigation(0,0,0,0);
+  // modulePlatform.navigation(0,1,15, 8500, flag);
+  //modulePlatform.goForward(50);
 }
   
 

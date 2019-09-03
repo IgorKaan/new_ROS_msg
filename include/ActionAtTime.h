@@ -1,19 +1,18 @@
-#ifndef _ROS_RobotMovement_h
-#define _ROS_RobotMovement_h
+#ifndef _ROS_rosserial_msgs_ActionAtTime_h
+#define _ROS_rosserial_msgs_ActionAtTime_h
 
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include "ros/msg.h"
 
-// namespace rosserial_msgs//
-// {
 
-  class RobotMovement // : public ros::Msg
+
+  class ActionAtTime
   {
     public:
-      typedef int16_t _distance_type;
-      _distance_type distance;
+      typedef float _time_type;
+      _time_type time;
       typedef int16_t _angle_type;
       _angle_type angle;
       typedef bool _movement_type;
@@ -21,8 +20,8 @@
       typedef bool _rotation_type;
       _rotation_type rotation;
 
-    RobotMovement():
-      distance(0),
+    ActionAtTime():
+      time(0),
       angle(0),
       movement(0),
       rotation(0)
@@ -33,13 +32,15 @@
     {
       int offset = 0;
       union {
-        int16_t real;
-        uint16_t base;
-      } u_distance;
-      u_distance.real = this->distance;
-      *(outbuffer + offset + 0) = (u_distance.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_distance.base >> (8 * 1)) & 0xFF;
-      offset += sizeof(this->distance);
+        float real;
+        uint32_t base;
+      } u_time;
+      u_time.real = this->time;
+      *(outbuffer + offset + 0) = (u_time.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_time.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_time.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_time.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->time);
       union {
         int16_t real;
         uint16_t base;
@@ -69,14 +70,16 @@
     {
       int offset = 0;
       union {
-        int16_t real;
-        uint16_t base;
-      } u_distance;
-      u_distance.base = 0;
-      u_distance.base |= ((uint16_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_distance.base |= ((uint16_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      this->distance = u_distance.real;
-      offset += sizeof(this->distance);
+        float real;
+        uint32_t base;
+      } u_time;
+      u_time.base = 0;
+      u_time.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_time.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_time.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_time.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->time = u_time.real;
+      offset += sizeof(this->time);
       union {
         int16_t real;
         uint16_t base;
@@ -105,12 +108,8 @@
      return offset;
     }
 
-    const char * getType(){ return "mars/RobotMovement"; };
-    const char * getMD5(){ return "e8cce422c0166f0db63d80772d72fe4f"; };
-    // const char * getMD5(){ return "e89a5bdfd9596ef6dcd83355c62b5ca6"; };
-
+    const char * getType(){ return "mars/ActionAtTime"; };
+    const char * getMD5(){ return "c8cc7a98db3f18232eb7cf6bb727fbf0"; };
 
   };
-
-// }
 #endif

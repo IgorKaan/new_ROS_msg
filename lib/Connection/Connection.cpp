@@ -3,7 +3,15 @@
 
 #define intpin 124
 
-void Connection::Connect(short aDistaance, short bDictacnce, short cDistance) {
+void Connection::setup() {
+
+     pinMode(34,INPUT);
+     pinMode(35,INPUT);
+
+ }
+
+
+void Connection::connect(short aDistaance, short bDictacnce, short cDistance) {
 
     if (aDistaance != 0) {
     
@@ -13,9 +21,13 @@ void Connection::Connect(short aDistaance, short bDictacnce, short cDistance) {
 
 }
 
- void Connection::Capture() {
+ void Connection::capture() {
 
-     digitalWrite(1,1);
-     digitalWrite(2,2);
+     int a;
+     int b;
+     a = analogRead(34);
+     b = analogRead(35);
+     Serial.println(a);
+     Serial.println(b);
      
  }

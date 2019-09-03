@@ -8,9 +8,20 @@ class Connection : public MotorControl
 {
     public:
 
-    void Connect(short aDistaance, short bDictacnce, short cDistance);
+    void connect(short aDistaance, short bDictacnce, short cDistance);
 
-    void Capture();
+    void capture();
+
+    void setup();
+
+    struct sensor
+    {
+        short sensor1_data;
+        short sensor2_data;
+        bool sensor3_data;
+        bool sensor4_data;
+    };
+    
 
     private:
 
