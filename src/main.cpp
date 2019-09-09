@@ -1,28 +1,46 @@
+#include "FineTuneConnection.h"
 #include <std_msgs/String.h>
+#include "RobotKeyPoints.h"
 #include "RobotMovement.h"
 #include "ConnectionCfg.h"
+#include <std_msgs/Int8.h>
 #include "ActionAtTime.h"
 #include <MotorControl.h>
 #include <Connection.h>
 #include <Arduino.h>
+#include "RobotId.h"
 #include <sstream>
 #include <WiFi.h>
 #include "Bool.h"
 #include <ros.h>
 
 using namespace std_msgs;
+using namespace rosserial_msgs;
 
 int status = WL_IDLE_STATUS;
 int correctValue = 0;
 int distance = 0;
 float actionTime = 0;
 
-short a,b,c;
-bool flag = 1;
-//bool* flag;
+int connTocenterX,connTocenterY, connTosideX, connTosideY;
+int connFromcenterX,connFromcenterY, connFromsideX, connFromsideY;
+
+int angle;
+int sensor = 0;
+int k;
+int iprev;
+int tick;
+int targetTick;
+int startPos = 17;
+
+int var = 0;
+int i;
+
+short data,b,c;
 
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
+uint8_t robot_id = 0;
 
 bool rotateValue = 0;
 bool moveForwardValue = 0;
@@ -75,18 +93,36 @@ class WiFiHardware {
   }
 };
 
-void movementCallback(const RobotMovement& msg) {
-  correctValue = msg.angle;
-  moveForwardValue = msg.movement;
-  rotateValue = msg.rotation;
-  distance = msg.distance;
+void hall() {
+  i++;
+  k = k + i;
   
-  //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
+  Serial.println(i);
+  Serial.println(k);
+  i = 0;
 }
 
-// void connectData(const Bool& msg) {
-//   correctValue = msg.data;
-// }
+void IRAM_ATTR isr() {
+  hall();
+}
+
+void rotateToAngle(int angle) {
+  //k = 0;
+  tick = map(angle, -90, 90, 0, 34);
+  targetTick = tick - startPos;
+  if (targetTick > 0) {
+   while (k < targetTick) {
+    ledcWrite(0,220);               
+   }
+   ledcWrite(0,190);
+  } 
+  startPos = tick;
+}
+
+void delayRotate() {
+    ledcWrite(0,190);  
+    delay(5000);
+}
 
 void timeMovementCallback(const ActionAtTime& msg) {
   correctValue = msg.angle;
@@ -98,31 +134,38 @@ void timeMovementCallback(const ActionAtTime& msg) {
   Serial.print(actionTime);
   Serial.print("\n");
   Serial.print("\n");
-  //flag = 1;
-  //ROS_INFO_STREAM(ros::Time::now() - msg->header.stamp);
 }
 
 void connectionCallback(const ConnectionCfg& msg) {
   connection_side_id = msg.connection_side_id;
   connection_state = msg.connection_state;
-  // Serial.print(connection_side_id);
-  // Serial.print("\n");
-  // Serial.print(connection_state);
-  // Serial.print("\n");
-  // Serial.print("\n");
+}
+
+void pointsCallback(const FineTuneConnection& msg) {
+
+  connTocenterX = msg.conn_to.center.x;
+  connTocenterY = msg.conn_to.center.y;
+  connTosideX = msg.conn_to.side_point.x;
+  connTosideY = msg.conn_to.side_point.y;
+
+}
+
+void robotId(const RobotId& msg) {
+
+  robot_id = msg.robot_id;
+
 }
 
 // ros::Subscriber<RobotMovement> sub("robot_movement/9", &movementCallback);
-// ros::Subscriber<ConnectionCfg> sub_1("connect", &connectionCallback);
 
-ros::Subscriber<ActionAtTime> sub("robot_movement/0", &timeMovementCallback);
+
+ros::Subscriber<ActionAtTime> sub("robot_movement/2", &timeMovementCallback);
+ros::Subscriber<RobotId> subrobotId("robot_id", &robotId);
+ros::Subscriber<ConnectionCfg> subConnectionCfg("connect", &connectionCallback);
+//ros::Subscriber<RobotKeyPoints> subPoints("robot_points/2", &pointsCallback);
+ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/2", &pointsCallback);
+
 ros::NodeHandle_<WiFiHardware> nh;
-// ros::NodeHandle_<WiFiHardware> n;
-//ros::Publisher pub = nh.advertise<std_msgs::Bool>("robotConnect", 1000);
-// std_msgs::String str;
-// str.data = "hello world";
-// pub.publish(str);
-   
 
 void setupWiFi()
 {
@@ -139,33 +182,37 @@ void setupWiFi()
   Serial.println(" to access client");
 }
 
+std_msgs::Int8 robotid;
+ros::Publisher pub("connect", &robotid);
+
 void setup()
 {
     Serial.begin(115200);
     modulePlatform = MotorControl();
+    pinMode(34,INPUT);
+    pinMode(35,INPUT);
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
-    //nh.subscribe(sub_1);
-    //nh.publish(1,"2424");
-    
+    nh.subscribe(subrobotId);
+    nh.subscribe(subConnectionCfg);
+    pinMode(15, INPUT);
+    ledcSetup(0, 500, 8);
+    ledcAttachPin(25, 0);
+    attachInterrupt(15,isr,CHANGE);
+    sei();
+    nh.advertise(pub);
+    //nh.subscribe(sub_1);    
 }
 
 void loop()
 { 
-  
   nh.spinOnce();
   modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
   moveForwardValue = 0;
   rotateValue = 0;
   correctValue = 0;
   actionTime = 0;
-    // modulePlatform.navigation(1,0,15, 5000, &flag); 
-    // Serial.println(flag);
-  // modulePlatform.navigation(1,0,15, 10000); 
-  //modulePlatform.navigation(0,0,0,0);
-  // modulePlatform.navigation(0,1,15, 8500, flag);
-  //modulePlatform.goForward(50);
 }
   
 

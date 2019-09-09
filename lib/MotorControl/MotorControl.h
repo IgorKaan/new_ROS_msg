@@ -33,6 +33,8 @@ class MotorControl
 
         void calibrate(short motorSpeed);
 
+        void calibrateLeft(short motorSpeed);
+
         void stopMovement();
 
         void brake();

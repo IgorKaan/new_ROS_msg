@@ -2,5 +2,9 @@
     "terminal.integrated.env.linux": {
         "PATH": "/home/igor/.platformio/penv/bin:/home/igor/.platformio/penv:/opt/ros/melodic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
         "PLATFORMIO_CALLER": "vscode"
+    },
+    "files.associations": {
+        "array": "cpp",
+        "string": "cpp"
     }
 }
