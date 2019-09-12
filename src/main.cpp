@@ -45,6 +45,7 @@ uint8_t platformNumber = 9;
 
 bool rotateValue = 0;
 bool moveForwardValue = 0;
+bool configuredSended = 0;
 uint8_t ready_to_connect = 0;
 
 // const char* ssid = "213_Guest";
@@ -187,6 +188,7 @@ void setupWiFi()
 std_msgs::Int8 robotid;
 ros::Publisher pubRobotId("connect", &robotid);
 ros::Publisher pubConfigured("configured", &robotid);
+ros::Publisher pubConnected("connected", &robotid);
 
 void setup()
 {
@@ -213,20 +215,6 @@ void setup()
 
 void loop()
 { 
-  //robot.connect();
-  //robot.connectLeft();
-  //robot.connect();
-  //modulePlatform.microMoveLeft();
-  // ikSensorData = analogRead(34);
-  // Serial.println(ikSensorData);
-  // delay(30);
-  // if(ikSensorData < 200) {
-  //   //modulePlatform.goForward(ikSensorData);  
-  // }
-  // else {
-  //   //modulePlatform.navigation(0,0,0, 0);   
-  //   modulePlatform.goForward(0); 
-  // }
   nh.spinOnce();
   modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
   moveForwardValue = 0;
@@ -236,15 +224,17 @@ void loop()
   robotid.data = platformNumber;
   pubRobotId.publish( &robotid );
 
-  if (connection_side_id != 0 || connection_state !=0) {
+  if ((connection_side_id != 0 || connection_state !=0) && configuredSended == 0) {
 
     pubConfigured.publish(&robotid);
+    configuredSended = 1;
 
   }
 
   if (ready_to_connect == platformNumber) {
 
     robot.connect();
+    pubConnected.publish(&robotid);
 
   }
   
