@@ -1,6 +1,7 @@
 #include "FineTuneConnection.h"
 #include <std_msgs/String.h>
 #include "RobotKeyPoints.h"
+#include <std_msgs/Bool.h>
 #include "RobotMovement.h"
 #include "ConnectionCfg.h"
 #include <std_msgs/Int8.h>
@@ -33,17 +34,18 @@ int tick;
 int targetTick;
 int startPos = 17;
 
-int var = 0;
 int i;
+int ikSensorData = 0;
 
-short data,b,c;
 
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
 uint8_t robot_id = 0;
+uint8_t platformNumber = 9;
 
 bool rotateValue = 0;
 bool moveForwardValue = 0;
+uint8_t ready_to_connect = 0;
 
 // const char* ssid = "213_Guest";
 // const char* password = "11081975";
@@ -59,8 +61,6 @@ WiFiClient client;
 MotorControl modulePlatform;
 
 Connection robot;
-
-//Connection* Robot1;
 
 class WiFiHardware {
 
@@ -96,7 +96,6 @@ class WiFiHardware {
 void hall() {
   i++;
   k = k + i;
-  
   Serial.println(i);
   Serial.println(k);
   i = 0;
@@ -117,11 +116,6 @@ void rotateToAngle(int angle) {
    ledcWrite(0,190);
   } 
   startPos = tick;
-}
-
-void delayRotate() {
-    ledcWrite(0,190);  
-    delay(5000);
 }
 
 void timeMovementCallback(const ActionAtTime& msg) {
@@ -150,6 +144,12 @@ void pointsCallback(const FineTuneConnection& msg) {
 
 }
 
+void on_connect(const Int8& msg) {
+
+  ready_to_connect = msg.data;
+
+}
+
 void robotId(const RobotId& msg) {
 
   robot_id = msg.robot_id;
@@ -159,11 +159,13 @@ void robotId(const RobotId& msg) {
 // ros::Subscriber<RobotMovement> sub("robot_movement/9", &movementCallback);
 
 
-ros::Subscriber<ActionAtTime> sub("robot_movement/2", &timeMovementCallback);
-ros::Subscriber<RobotId> subrobotId("robot_id", &robotId);
-ros::Subscriber<ConnectionCfg> subConnectionCfg("connect", &connectionCallback);
+ros::Subscriber<ActionAtTime> sub("robot_movement/9", &timeMovementCallback);
+//ros::Subscriber<RobotId> subrobotId("robot_id", &robotId);
+ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/9", &connectionCallback);
 //ros::Subscriber<RobotKeyPoints> subPoints("robot_points/2", &pointsCallback);
-ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/2", &pointsCallback);
+ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/9", &pointsCallback);
+
+ros::Subscriber<std_msgs::Int8> connectionState("on_position", &on_connect);
 
 ros::NodeHandle_<WiFiHardware> nh;
 
@@ -183,7 +185,8 @@ void setupWiFi()
 }
 
 std_msgs::Int8 robotid;
-ros::Publisher pub("connect", &robotid);
+ros::Publisher pubRobotId("connect", &robotid);
+ros::Publisher pubConfigured("configured", &robotid);
 
 void setup()
 {
@@ -194,25 +197,58 @@ void setup()
     setupWiFi();
     nh.initNode();
     nh.subscribe(sub);
-    nh.subscribe(subrobotId);
+    //nh.subscribe(subrobotId);
     nh.subscribe(subConnectionCfg);
-    pinMode(15, INPUT);
-    ledcSetup(0, 500, 8);
-    ledcAttachPin(25, 0);
-    attachInterrupt(15,isr,CHANGE);
-    sei();
-    nh.advertise(pub);
-    //nh.subscribe(sub_1);    
+    nh.subscribe(connectionState);
+    // pinMode(15, INPUT);
+    // ledcSetup(0, 500, 8);
+    // ledcAttachPin(25, 0);
+    // attachInterrupt(15,isr,CHANGE);
+    // sei();
+    nh.advertise(pubRobotId);
+    robotid.data = platformNumber;
+    pubRobotId.publish( &robotid );
+       
 }
 
 void loop()
 { 
+  //robot.connect();
+  //robot.connectLeft();
+  //robot.connect();
+  //modulePlatform.microMoveLeft();
+  // ikSensorData = analogRead(34);
+  // Serial.println(ikSensorData);
+  // delay(30);
+  // if(ikSensorData < 200) {
+  //   //modulePlatform.goForward(ikSensorData);  
+  // }
+  // else {
+  //   //modulePlatform.navigation(0,0,0, 0);   
+  //   modulePlatform.goForward(0); 
+  // }
   nh.spinOnce();
   modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
   moveForwardValue = 0;
   rotateValue = 0;
   correctValue = 0;
   actionTime = 0;
+  robotid.data = platformNumber;
+  pubRobotId.publish( &robotid );
+
+  if (connection_side_id != 0 || connection_state !=0) {
+
+    pubConfigured.publish(&robotid);
+
+  }
+
+  if (ready_to_connect == platformNumber) {
+
+    robot.connect();
+
+  }
+  
+  
 }
   
 

@@ -35,6 +35,10 @@ class MotorControl
 
         void calibrateLeft(short motorSpeed);
 
+        void microMoveLeft();
+
+        void microMoveRight();
+
         void stopMovement();
 
         void brake();

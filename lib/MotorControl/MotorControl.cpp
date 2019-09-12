@@ -8,6 +8,7 @@
 #define M3_Adress (0x2C)  
 #define M4_Adress (0x2D)
 #define PWM 17 //35
+// #define PWM 45 //35
 #define PWML 15
 #define PWMR  15//30
 #define PWMRL 15
@@ -288,6 +289,20 @@ void MotorControl::goRight(short motorSpeed)
     }
 }
 
+void MotorControl::microMoveRight()
+{
+        M1.setmotor(_CCW, PWM);
+        M2.setmotor(_CW, PWM);
+        M3.setmotor(_CW, PWM);
+        M4.setmotor(_CCW, PWM);
+        delay(10);
+        M1.setmotor(_SHORT_BRAKE, 0);
+        M2.setmotor(_SHORT_BRAKE, 0);
+        M3.setmotor(_SHORT_BRAKE, 0);
+        M4.setmotor(_SHORT_BRAKE, 0);
+        delay(1000);
+}
+
 void MotorControl::goLeft(short motorSpeed)
 {
     if (motorSpeed >= 20) {
@@ -307,6 +322,25 @@ void MotorControl::goLeft(short motorSpeed)
         M3.setmotor(_CCW, speed);
         M4.setmotor(_CW, speed);
     }
+}
+
+void MotorControl::microMoveLeft()
+{
+        M1.setmotor(_CW, PWM);
+        M2.setmotor(_CCW, PWM);
+        M3.setmotor(_CCW, PWM);
+        M4.setmotor(_CW, PWM);
+        //delay(1);
+        M1.setmotor(_CW, 5);
+        M2.setmotor(_CCW, 5);
+        M3.setmotor(_CCW, 5);
+        M4.setmotor(_CW, 5);
+        delay(1);
+        M1.setmotor(_SHORT_BRAKE, 0);
+        M2.setmotor(_SHORT_BRAKE, 0);
+        M3.setmotor(_SHORT_BRAKE, 0);
+        M4.setmotor(_SHORT_BRAKE, 0);
+        //delay(1000);
 }
 
 void MotorControl::turnLeft(short motorSpeed)

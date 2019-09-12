@@ -8,7 +8,11 @@ class Connection : public MotorControl
 {
     public:
 
-    void connect(short aDistaance, short bDictacnce, short cDistance);
+    void connect();
+
+    void connectRight();
+
+    void connectLeft();
 
     void capture();
 
