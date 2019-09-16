@@ -15,39 +15,46 @@
 #include "Bool.h"
 #include <ros.h>
 
+bool stateMove;
+
+unsigned long time11 = 0;
+
 using namespace std_msgs;
 using namespace rosserial_msgs;
 
-int status = WL_IDLE_STATUS;
-int correctValue = 0;
-int distance = 0;
-float actionTime = 0;
+//unsigned long time1, time2 , time3;
 
-int connTocenterX,connTocenterY, connTosideX, connTosideY;
+float actionTime;
+
+bool t = 1;
+
 int connFromcenterX,connFromcenterY, connFromsideX, connFromsideY;
-
+int connTocenterX,connTocenterY, connTosideX, connTosideY;
+int status = WL_IDLE_STATUS;
+int startPos = 17;
+int ikSensorData;
+int correctValue;
+int targetTick;
+int distance;
 int angle;
-int sensor = 0;
-int k;
+int sensor;
 int iprev;
 int tick;
-int targetTick;
-int startPos = 17;
-
 int i;
-int ikSensorData = 0;
-
+int k;
+int state;
 
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
-uint8_t robot_id = 0;
+uint8_t ready_to_connect = -1;
 uint8_t platformNumber = 9;
 
-bool rotateValue = 0;
 bool moveForwardValue = 0;
+bool getConnectPosition = 0;
 bool configuredSended = 0;
-uint8_t ready_to_connect = 0;
+bool rotateValue = 0;
 
+bool stop = 0;
 // const char* ssid = "213_Guest";
 // const char* password = "11081975";
 
@@ -57,10 +64,8 @@ const char* password = "1122334455";
 IPAddress server(192, 168, 1, 65); 
 IPAddress ip_address;
 
-WiFiClient client;
-
 MotorControl modulePlatform;
-
+WiFiClient client;
 Connection robot;
 
 class WiFiHardware {
@@ -95,19 +100,23 @@ class WiFiHardware {
 };
 
 void hall() {
+
   i++;
   k = k + i;
   Serial.println(i);
   Serial.println(k);
   i = 0;
+
 }
 
 void IRAM_ATTR isr() {
+
   hall();
+
 }
 
 void rotateToAngle(int angle) {
-  //k = 0;
+
   tick = map(angle, -90, 90, 0, 34);
   targetTick = tick - startPos;
   if (targetTick > 0) {
@@ -117,23 +126,23 @@ void rotateToAngle(int angle) {
    ledcWrite(0,190);
   } 
   startPos = tick;
+
 }
 
 void timeMovementCallback(const ActionAtTime& msg) {
+
   correctValue = msg.angle;
   moveForwardValue = msg.movement;
   rotateValue = msg.rotation;
   actionTime = msg.time;
-  Serial.print(correctValue);
-  Serial.print("\n");
-  Serial.print(actionTime);
-  Serial.print("\n");
-  Serial.print("\n");
+  
 }
 
 void connectionCallback(const ConnectionCfg& msg) {
+
   connection_side_id = msg.connection_side_id;
   connection_state = msg.connection_state;
+
 }
 
 void pointsCallback(const FineTuneConnection& msg) {
@@ -151,31 +160,38 @@ void on_connect(const Int8& msg) {
 
 }
 
-void robotId(const RobotId& msg) {
+// void robotId(const RobotId& msg) {
 
-  robot_id = msg.robot_id;
+//   robot_id = msg.robot_id;
 
-}
-
-// ros::Subscriber<RobotMovement> sub("robot_movement/9", &movementCallback);
-
+// }
 
 ros::Subscriber<ActionAtTime> sub("robot_movement/9", &timeMovementCallback);
-//ros::Subscriber<RobotId> subrobotId("robot_id", &robotId);
 ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/9", &connectionCallback);
-//ros::Subscriber<RobotKeyPoints> subPoints("robot_points/2", &pointsCallback);
-ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/9", &pointsCallback);
-
+// ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/0", &pointsCallback);
 ros::Subscriber<std_msgs::Int8> connectionState("on_position", &on_connect);
+
+std_msgs::Int8 robotid;
+// std_msgs::Int8 robotid2;
+// std_msgs::Int8 robotid3;
+// std_msgs::Int8 robotid4;
+
+ros::Publisher pubRobotId("robot_id", &robotid);
+
+
+// ros::Publisher pubReadyToConnect("ready_to_connect", &robotid);
+// ros::Publisher pubRobotId("connected_to_ros", &robotid2);
+// ros::Publisher pubConfigured("configured", &robotid3);
+// ros::Publisher pubConnected("connected", &robotid4);
 
 ros::NodeHandle_<WiFiHardware> nh;
 
-void setupWiFi()
-{
+void setupWiFi() {
+
   WiFi.begin(ssid, password);
   Serial.print("\nConnecting to "); Serial.println(ssid);
   uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 2000) delay(500);
+  while (WiFi.status() != WL_CONNECTED && i++ < 20000) delay(500);
   if(i == 2001){
     Serial.print("Could not connect to"); Serial.println(ssid);
     while(1) delay(500);
@@ -183,62 +199,108 @@ void setupWiFi()
   Serial.print("Ready! Use ");
   Serial.print(WiFi.localIP());
   Serial.println(" to access client");
+
 }
 
-std_msgs::Int8 robotid;
-ros::Publisher pubRobotId("connect", &robotid);
-ros::Publisher pubConfigured("configured", &robotid);
-ros::Publisher pubConnected("connected", &robotid);
+void refreshConnection() {
 
-void setup()
-{
-    Serial.begin(115200);
-    modulePlatform = MotorControl();
-    pinMode(34,INPUT);
-    pinMode(35,INPUT);
-    setupWiFi();
-    nh.initNode();
-    nh.subscribe(sub);
-    //nh.subscribe(subrobotId);
-    nh.subscribe(subConnectionCfg);
-    nh.subscribe(connectionState);
-    // pinMode(15, INPUT);
-    // ledcSetup(0, 500, 8);
-    // ledcAttachPin(25, 0);
-    // attachInterrupt(15,isr,CHANGE);
-    // sei();
-    nh.advertise(pubRobotId);
-    robotid.data = platformNumber;
-    pubRobotId.publish( &robotid );
-       
-}
-
-void loop()
-{ 
   nh.spinOnce();
-  modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
-  moveForwardValue = 0;
-  rotateValue = 0;
-  correctValue = 0;
-  actionTime = 0;
+  robotid.data = platformNumber;
+  pubRobotId.publish(&robotid);
+  Serial.println("refresh");
+
+}
+
+
+void setup() {
+
+  Serial.begin(115200);
+  modulePlatform = MotorControl();
+  robot.initNodeRefresher(refreshConnection);
+  pinMode(34,INPUT);
+  pinMode(35,INPUT);
+  setupWiFi();
+  nh.initNode();
+  nh.subscribe(sub);
+  nh.subscribe(subConnectionCfg);
+  nh.subscribe(connectionState);
+  // pinMode(15, INPUT);
+  // ledcSetup(0, 500, 8);
+  // ledcAttachPin(25, 0);
+  // attachInterrupt(15,isr,CHANGE);
+  // sei();
+  nh.advertise(pubRobotId);
+  // nh.advertise(pubConnected);
+  // nh.advertise(pubConfigured);
+  // nh.advertise(pubReadyToConnect);
   robotid.data = platformNumber;
   pubRobotId.publish( &robotid );
+     
+}
 
-  if ((connection_side_id != 0 || connection_state !=0) && configuredSended == 0) {
+void loop() { 
 
-    pubConfigured.publish(&robotid);
-    configuredSended = 1;
+  modulePlatform.goForward();
 
-  }
-
-  if (ready_to_connect == platformNumber) {
-
-    robot.connect();
-    pubConnected.publish(&robotid);
-
-  }
+  // nh.spinOnce();
+  // modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
+  // moveForwardValue = 0;
+  // rotateValue = 0;
+  // correctValue = 0;
+  // actionTime = 0;
+  // robotid.data = platformNumber;
+  // pubRobotId.publish( &robotid);
+  // Serial.println("here");
   
   
+  // if (stop == 0){
+
+  // if ((connection_side_id != 0 || connection_state !=0) && configuredSended == 0) {
+
+  //   //nh.spinOnce();
+  //   robotid.data = platformNumber+20;
+  //   pubRobotId.publish(&robotid);
+  //   configuredSended = 1;
+
+  // }
+
+  // if ((ready_to_connect == platformNumber) && (getConnectPosition == 0)) {
+  //   Serial.println("FUCK1");
+  //   robot.connect(state);
+  //   if (state == 1) {
+  //   //   robot.stopMovement();
+  //     robotid.data = platformNumber+30;
+  //     pubRobotId.publish(&robotid);
+  //   //   Serial.println("state =");
+  //   //   Serial.println(state);
+  //   }
+
+  //   //  delay(100);
+  //   getConnectPosition = 1;
+  //   // }
+  //   // delay(100000);
+      
+  // }
+
+  // else if (getConnectPosition == 1) {
+  //   Serial.println("SSSSUUKKKKAAAAAAAA");
+
+  //   //nh.spinOnce();
+  //   // robot.stopMovement();
+  //   //robot.delay_at_time(2000);
+  //   // robotid.data = platformNumber+40;
+  //   // pubRobotId.publish(&robotid);
+  //   Serial.println("gptc");
+  //   Serial.println(getConnectPosition);
+  //   Serial.println("finish");
+  //   Serial.println("state =");
+  //   Serial.println(state);
+  //   stop = 1;
+  // }
+
+  // }
+  
+
 }
   
 

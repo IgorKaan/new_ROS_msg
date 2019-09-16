@@ -11,33 +11,47 @@ class MotorControl
         
         void navigation(bool moveforwardValue, bool rotateValue ,short correctValue, float actionTime);
 
-        void goForward(short motorSpeed);
+        void goForward();
 
-        void goBackward(short motorSpeed);
+        void forwardConnect(short time);
 
-        void goLeft(short motorSpeed);
+        void leftConnect(short time);
 
-        void goRight(short motorSpeed);
+        void rightConnect(short time);
 
-        void turnLeft(short motorSpeed);
+        void goBackward();
 
-        void turnRight(short motorSpeed);
+        void goLeft();
 
-        void leftForward(short motorSpeed);
+        void goRight();
 
-        void rightForward(short motorSpeed);
+        void turnLeft();
 
-        void leftBackward(short motorSpeed);
+        void turnRight();
 
-        void rightBackward(short motorSpeed);
+        void leftForward();
 
-        void calibrate(short motorSpeed);
+        void rightForward();
 
-        void calibrateLeft(short motorSpeed);
+        void leftBackward();
+
+        void rightBackward();
+
+        void calibrate();
+
+        void calibrateLeft();
 
         void microMoveLeft();
 
         void microMoveRight();
+
+        void leftGrabCaprure();
+
+        void leftGrabRelease();
+
+        void rightGrabCaprure();
+
+        void rightGrabRelease();
 
         void stopMovement();
 

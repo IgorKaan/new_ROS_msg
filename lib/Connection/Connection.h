@@ -8,15 +8,19 @@ class Connection : public MotorControl
 {
     public:
 
-    void connect();
+    void connect(int &state);
+
+    void configured(uint8_t connection_side_id, uint8_t connection_state);
 
     void connectRight();
 
     void connectLeft();
 
+    void delay_at_time(int delay_time);
+
     void capture();
 
-    void setup();
+    void initNodeRefresher(void refresh());
 
     struct sensor
     {
