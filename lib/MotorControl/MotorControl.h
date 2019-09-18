@@ -11,7 +11,7 @@ class MotorControl
         
         void navigation(bool moveforwardValue, bool rotateValue ,short correctValue, float actionTime);
 
-        void goForward();
+        void goForward(short speed);
 
         void forwardConnect(short time);
 
@@ -45,13 +45,17 @@ class MotorControl
 
         void microMoveRight();
 
-        void leftGrabCaprure();
+        void leftGrabCapture();
 
         void leftGrabRelease();
 
-        void rightGrabCaprure();
+        void leftGrabStop();
+
+        void rightGrabCapture();
 
         void rightGrabRelease();
+
+        void rightGrabStop();
 
         void stopMovement();
 

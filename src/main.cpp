@@ -15,9 +15,8 @@
 #include "Bool.h"
 #include <ros.h>
 
-bool stateMove;
-
-unsigned long time11 = 0;
+bool grubLeftFinish = 0;
+bool grubRightFinish = 0;
 
 using namespace std_msgs;
 using namespace rosserial_msgs;
@@ -26,10 +25,6 @@ using namespace rosserial_msgs;
 
 float actionTime;
 
-bool t = 1;
-
-int connFromcenterX,connFromcenterY, connFromsideX, connFromsideY;
-int connTocenterX,connTocenterY, connTosideX, connTosideY;
 int status = WL_IDLE_STATUS;
 int startPos = 17;
 int ikSensorData;
@@ -47,14 +42,13 @@ int state;
 uint8_t connection_side_id = 0;
 uint8_t connection_state = 0;
 uint8_t ready_to_connect = -1;
-uint8_t platformNumber = 9;
+uint8_t platformNumber = 7;
+uint8_t grubState = 0;
 
 bool moveForwardValue = 0;
 bool getConnectPosition = 0;
 bool configuredSended = 0;
 bool rotateValue = 0;
-
-bool stop = 0;
 // const char* ssid = "213_Guest";
 // const char* password = "11081975";
 
@@ -81,9 +75,9 @@ class WiFiHardware {
 
   // read a byte from the serial port. -1 = failure
   int read() {
-    // implement this method so that it reads a byte from the TCP connection and returns it
-    //  you may return -1 is there is an error; for example if the TCP connection is not open
-    return client.read();         //will return -1 when it will works
+
+    return client.read(); 
+
   }
 
   // write data to the connection to ROS
@@ -138,19 +132,16 @@ void timeMovementCallback(const ActionAtTime& msg) {
   
 }
 
+void grubCallback(const Int8& msg) {
+
+  grubState = msg.data;
+
+}
+
 void connectionCallback(const ConnectionCfg& msg) {
 
   connection_side_id = msg.connection_side_id;
   connection_state = msg.connection_state;
-
-}
-
-void pointsCallback(const FineTuneConnection& msg) {
-
-  connTocenterX = msg.conn_to.center.x;
-  connTocenterY = msg.conn_to.center.y;
-  connTosideX = msg.conn_to.side_point.x;
-  connTosideY = msg.conn_to.side_point.y;
 
 }
 
@@ -160,21 +151,12 @@ void on_connect(const Int8& msg) {
 
 }
 
-// void robotId(const RobotId& msg) {
-
-//   robot_id = msg.robot_id;
-
-// }
-
-ros::Subscriber<ActionAtTime> sub("robot_movement/9", &timeMovementCallback);
-ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/9", &connectionCallback);
-// ros::Subscriber<FineTuneConnection> subFineConnection("robot_points/0", &pointsCallback);
+ros::Subscriber<ActionAtTime> sub("robot_movement/7", &timeMovementCallback);
+ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/7", &connectionCallback);
 ros::Subscriber<std_msgs::Int8> connectionState("on_position", &on_connect);
+ros::Subscriber<std_msgs::Int8> grubGfg("grub/7", &grubCallback);
 
 std_msgs::Int8 robotid;
-// std_msgs::Int8 robotid2;
-// std_msgs::Int8 robotid3;
-// std_msgs::Int8 robotid4;
 
 ros::Publisher pubRobotId("robot_id", &robotid);
 
@@ -217,22 +199,18 @@ void setup() {
   Serial.begin(115200);
   modulePlatform = MotorControl();
   robot.initNodeRefresher(refreshConnection);
-  pinMode(34,INPUT);
-  pinMode(35,INPUT);
-  setupWiFi();
-  nh.initNode();
-  nh.subscribe(sub);
-  nh.subscribe(subConnectionCfg);
-  nh.subscribe(connectionState);
-  // pinMode(15, INPUT);
-  // ledcSetup(0, 500, 8);
-  // ledcAttachPin(25, 0);
-  // attachInterrupt(15,isr,CHANGE);
-  // sei();
+  // setupWiFi();
+  // nh.initNode();
+  // nh.subscribe(sub);
+  // nh.subscribe(subConnectionCfg);
+  // nh.subscribe(connectionState);
+  // nh.subscribe(grubGfg);
+  pinMode(15, INPUT);
+  ledcSetup(0, 50, 11);
+  ledcAttachPin(12, 0);
+  attachInterrupt(15,isr,CHANGE);
+  sei();
   nh.advertise(pubRobotId);
-  // nh.advertise(pubConnected);
-  // nh.advertise(pubConfigured);
-  // nh.advertise(pubReadyToConnect);
   robotid.data = platformNumber;
   pubRobotId.publish( &robotid );
      
@@ -240,8 +218,17 @@ void setup() {
 
 void loop() { 
 
-  modulePlatform.goForward();
-
+  modulePlatform.goForward(20);
+  delay(2500);
+  robot.leftGrabRelease();
+  robot.rightGrabRelease();
+  delay(2500);
+  robot.leftGrabCapture();
+  robot.rightGrabCapture();
+  delay(2500);
+  robot.leftGrabRelease();
+  robot.rightGrabRelease();
+  delay(2500);
   // nh.spinOnce();
   // modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
   // moveForwardValue = 0;
@@ -252,12 +239,8 @@ void loop() {
   // pubRobotId.publish( &robotid);
   // Serial.println("here");
   
-  
-  // if (stop == 0){
-
   // if ((connection_side_id != 0 || connection_state !=0) && configuredSended == 0) {
 
-  //   //nh.spinOnce();
   //   robotid.data = platformNumber+20;
   //   pubRobotId.publish(&robotid);
   //   configuredSended = 1;
@@ -265,41 +248,46 @@ void loop() {
   // }
 
   // if ((ready_to_connect == platformNumber) && (getConnectPosition == 0)) {
-  //   Serial.println("FUCK1");
-  //   robot.connect(state);
+
+  //   modulePlatform.goForward(25);
+  //   delay(1500);
+  //   state = 1;
   //   if (state == 1) {
-  //   //   robot.stopMovement();
+  //     robot.stopMovement();
   //     robotid.data = platformNumber+30;
   //     pubRobotId.publish(&robotid);
-  //   //   Serial.println("state =");
-  //   //   Serial.println(state);
+  //   }
+  //   getConnectPosition = 1;
+    
+  // }
+
+  // if ((grubState == 1) && (grubLeftFinish == 0)) {
+
+  //     robot.leftGrabCapture();
+  //     delay(2500);
+  //     robot.leftGrabStop();
+  //     delay(10000);
+  //     robot.leftGrabRelease();
+  //     delay(2500);
+  //     robot.leftGrabStop();
+  //     grubLeftFinish = 1;
+  //     robotid.data = platformNumber+40;
+  //     pubRobotId.publish(&robotid);
   //   }
 
-  //   //  delay(100);
-  //   getConnectPosition = 1;
-  //   // }
-  //   // delay(100000);
-      
-  // }
+  // else if ((grubState == 2) && (grubRightFinish == 0)) {
 
-  // else if (getConnectPosition == 1) {
-  //   Serial.println("SSSSUUKKKKAAAAAAAA");
-
-  //   //nh.spinOnce();
-  //   // robot.stopMovement();
-  //   //robot.delay_at_time(2000);
-  //   // robotid.data = platformNumber+40;
-  //   // pubRobotId.publish(&robotid);
-  //   Serial.println("gptc");
-  //   Serial.println(getConnectPosition);
-  //   Serial.println("finish");
-  //   Serial.println("state =");
-  //   Serial.println(state);
-  //   stop = 1;
+  //     robot.rightGrabCapture();
+  //     delay(2500);
+  //     robot.rightGrabStop();
+  //     delay(10000);
+  //     robot.rightGrabRelease();
+  //     delay(2500);
+  //     robot.rightGrabStop();
+  //     grubRightFinish = 1;
+  //     robotid.data = platformNumber+40;
+  //     pubRobotId.publish(&robotid);
   // }
-
-  // }
-  
 
 }
   

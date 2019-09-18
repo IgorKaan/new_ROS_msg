@@ -8,7 +8,9 @@ class Connection : public MotorControl
 {
     public:
 
-    void connect(int &state);
+    void connectForward(int &state);
+
+    void connectBackward(int &state);
 
     void configured(uint8_t connection_side_id, uint8_t connection_state);
 

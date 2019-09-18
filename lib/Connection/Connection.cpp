@@ -6,11 +6,13 @@
 // #define sensorOnePin 34
 // #define sensorTwoPin 35
 
-#define sensorOnePin 34
-#define sensorTwoPin 35
+#define sensorOnePin 32
+#define sensorTwoPin 33
 
 using namespace std_msgs;
 using namespace rosserial_msgs;
+
+int timeleft, timeright;
 
 
 
@@ -29,22 +31,26 @@ bool microMoveStateRight = 1;
 bool ready = false;
 int predSendorData = 0;
 int sensorData = 0;
+int sensorData1 = 0;
 int move_counter = 0;
 uint8_t last_movement = 2;
 
 void(*refreshConnectPtr)();
 
+int read_sensor() {
+    sensorData = analogRead(sensorOnePin);
+    //sensorData1 = analogRead(sensorTwoPin);
+    Serial.println("sensor_data =");
+    Serial.println(sensorData);
+    Serial.println("sensor_data1 =");
+    Serial.println(sensorData1);
+    return sensorData;
+}
+
 void Connection::delay_at_time(int delay_time) {
 
     unsigned long start_time = millis();
-    while (millis() - start_time < delay_time) {}
-}
-
-int read_sensor() {
-    sensorData = analogRead(sensorOnePin);
-    Serial.println("sensor_data =");
-    Serial.println(sensorData);
-    return sensorData;
+    while (millis() - start_time < delay_time) {read_sensor();}
 }
 
 void Connection::connectRight() {
@@ -70,10 +76,10 @@ void Connection::initNodeRefresher(void refresh()) {
 }
 
 
-void Connection::connect(int &state) {
+void Connection::connectForward(int &state) {
 
     while (ready != true) {
-        refreshConnectPtr();
+        //refreshConnectPtr();
         read_sensor();
         Serial.println("sensorData");
         Serial.println(sensorData);
@@ -116,9 +122,79 @@ void Connection::connect(int &state) {
         }
         predSendorData = sensorData;
     }
-    goForward();
+    goForward(30);
     delay(1500);
     state = 1;
+}
+
+void Connection::connectBackward(int &state) {
+
+    read_sensor();
+
+    if (sensorData == 0) {
+
+        goLeft();
+        delay_at_time(3000);
+        //goRight();
+        //delay_at_time(2000);
+        Serial.println("sensorData");
+    }
+    else {
+        stopMovement();
+        delay(10000);
+    }
+
+
+
+    
+
+    // while (ready != true) {
+    //     //refreshConnectPtr();
+    //     read_sensor();
+    //     Serial.println("sensorData");
+    //     Serial.println(sensorData);
+    //     // robotid.data = 9;
+    //     // pubRobotId.publish( &robotid);
+    //     if ((sensorData == 0) && (move_counter < 6)) {
+    //         connectLeft();
+    //         move_counter++;
+    //         Serial.println("111");
+    //     }
+    //     else if ((sensorData == 0) && (move_counter >= 6)) {
+    //         connectRight();
+    //         Serial.println("222");
+    //     }
+    //     else if (sensorData != 0) {
+    //         Serial.println("333");
+    //         if (sensorData > predSendorData) {
+    //             Serial.println("444");
+    //             if (last_movement == 2) {
+    //                 Serial.println("555");
+    //                 connectLeft();
+    //             }
+    //             else {
+    //                 Serial.println("666");
+    //                 connectRight();
+    //             }
+    //         }
+    //         else {
+    //             Serial.println("777");
+                
+    //             if (last_movement == 2) {
+    //                 connectRight();
+    //                 ready = true;
+    //             }
+    //             else {
+    //                 connectLeft();
+    //                 ready = true;
+    //             }
+    //         }
+    //     }
+    //     predSendorData = sensorData;
+    // }
+    // goBackward();
+    // delay(1500);
+    // state = 1;
 }
 
 void Connection::configured(uint8_t connection_side_id, uint8_t connection_state) {

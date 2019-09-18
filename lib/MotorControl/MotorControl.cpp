@@ -8,10 +8,10 @@
 #define M3_Adress (0x2C)  
 #define M4_Adress (0x2D)
 
-#define M5_Adress (0x30)  
-#define M6_Adress (0x32)
+#define M5_Adress (0x32)  
+#define M6_Adress (0x30)
 
-#define PWM 17 //35
+#define PWM 18 //35
 // #define PWM 45 //35
 #define PWML 15
 #define PWMR  15//30
@@ -33,7 +33,7 @@ void MotorControl::navigation(bool moveForwardValue, bool rotateValue ,short cor
         if (correctValue <= 30 && correctValue >= -30) {
 
             //*flag = 0;
-            MotorControl::goForward();
+            MotorControl::goForward(PWM);
             delay(actionTime*0.7); 
             MotorControl::brake();
 
@@ -144,12 +144,12 @@ void MotorControl::navigation(bool moveForwardValue, bool rotateValue ,short cor
     }
 }
 
-void MotorControl::goForward()
+void MotorControl::goForward(short speed)
 {
-        M1.setmotor(_CW, PWM);
-        M2.setmotor(_CW, PWM);
-        M3.setmotor(_CCW, PWM);
-        M4.setmotor(_CCW, PWM);
+        M1.setmotor(_CW, speed);
+        M2.setmotor(_CW, speed);
+        M3.setmotor(_CCW, speed);
+        M4.setmotor(_CCW, speed);
 }
 
 void MotorControl::forwardConnect(short time) {
@@ -288,24 +288,34 @@ void MotorControl::brake()
     M4.setmotor(_SHORT_BRAKE, 0);
 }
 
-void MotorControl::leftGrabCaprure()
+void MotorControl::leftGrabCapture()
 {
-
+    M5.setmotor(_CW, 40);    
 }
 
 void MotorControl::leftGrabRelease()
 {
-    
+    M5.setmotor(_CCW, 40);
 }
 
-void MotorControl::rightGrabCaprure()
+void MotorControl::leftGrabStop()
 {
+    M5.setmotor(_CCW, 0);
+}
 
+void MotorControl::rightGrabCapture()
+{
+    M6.setmotor(_CW, 40);  
 }
 
 void MotorControl::rightGrabRelease()
 {
-    
+    M6.setmotor(_CCW, 40);    
+}
+
+void MotorControl::rightGrabStop()
+{
+    M6.setmotor(_CCW, 0);
 }
 
 void MotorControl::stopMovement()
