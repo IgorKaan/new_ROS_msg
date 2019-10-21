@@ -40,10 +40,10 @@ void(*refreshConnectPtr)();
 int read_sensor() {
     sensorData = analogRead(sensorOnePin);
     //sensorData1 = analogRead(sensorTwoPin);
-    Serial.println("sensor_data =");
-    Serial.println(sensorData);
-    Serial.println("sensor_data1 =");
-    Serial.println(sensorData1);
+    // Serial.println("sensor_data =");
+    // Serial.println(sensorData);
+    // Serial.println("sensor_data1 =");
+    // Serial.println(sensorData1);
     return sensorData;
 }
 
@@ -55,7 +55,7 @@ void Connection::delay_at_time(int delay_time) {
 
 void Connection::connectRight() {
     MotorControl::goRight();
-    delay_at_time(10);
+    delay_at_time(60);
     MotorControl::stopMovement();
     delay_at_time(300);
     last_movement = 1;  
@@ -64,7 +64,7 @@ void Connection::connectRight() {
 
 void Connection::connectLeft() {
     MotorControl::goLeft();
-    delay_at_time(10);
+    delay_at_time(60);
     MotorControl::stopMovement();
     delay_at_time(300);
     last_movement = 2;  
@@ -76,56 +76,214 @@ void Connection::initNodeRefresher(void refresh()) {
 }
 
 
+// void Connection::connectForward(int &state) {
+
+//     while (ready != true) {
+//         //refreshConnectPtr();
+//         read_sensor();
+//         Serial.println("sensorData");
+//         Serial.println(sensorData);
+//         // robotid.data = 9;
+//         // pubRobotId.publish( &robotid);
+//         if ((sensorData == 0) && (move_counter < 15)) {
+//             connectLeft();
+//             move_counter++;
+//             Serial.println("111");
+//         }
+//         else if ((sensorData == 0) && (move_counter >= 15)) {
+//             connectRight();
+//             Serial.println("222");
+//         }
+//         else if (sensorData != 0) {
+//             Serial.println("333");
+//             if (sensorData > predSendorData) {
+//                 Serial.println("444");
+//                 if (last_movement == 2) {
+//                     Serial.println("555");
+//                     connectLeft();
+//                 }
+//                 else {
+//                     Serial.println("666");
+//                     connectRight();
+//                 }
+//             }
+//             else {
+//                 Serial.println("777");
+                
+//                 if (last_movement == 2) {
+//                     connectRight();
+//                     ready = true;
+//                 }
+//                 else {
+//                     connectLeft();
+//                     ready = true;
+//                 }
+//             }
+//         }
+//         predSendorData = sensorData;
+//     }
+//     goBackward();
+//     delay(1000);
+//     stopMovement();
+//     delay(10000);
+//     state = 1;
+// }
+
 void Connection::connectForward(int &state) {
 
-    while (ready != true) {
-        //refreshConnectPtr();
+    while (state != true) {
+        refreshConnectPtr();
         read_sensor();
         Serial.println("sensorData");
         Serial.println(sensorData);
         // robotid.data = 9;
         // pubRobotId.publish( &robotid);
-        if ((sensorData == 0) && (move_counter < 6)) {
+        if ((sensorData == 0) && (move_counter < 20)) {
             connectLeft();
             move_counter++;
             Serial.println("111");
         }
-        else if ((sensorData == 0) && (move_counter >= 6)) {
+        else if ((sensorData == 0) && (move_counter >= 20)) {
             connectRight();
             Serial.println("222");
         }
         else if (sensorData != 0) {
             Serial.println("333");
-            if (sensorData > predSendorData) {
-                Serial.println("444");
+            // if (sensorData > predSendorData) {
+            //     Serial.println("444");
                 if (last_movement == 2) {
                     Serial.println("555");
                     connectLeft();
+                    delay(50);
+                    connectLeft();
+                    delay(50);
+                    connectLeft();
+                    delay(50);
+                    connectLeft();
+                    delay(50);
+                    connectLeft();
+                    delay(50);
+                    connectLeft();
+                    delay(50);
+                    goBackward(29);
+                    delay(2200);
+                    stopMovement();
+                    //delay(10000);
+                    state = 1;
                 }
-                else {
+                else if (last_movement == 1) {
                     Serial.println("666");
                     connectRight();
-                }
-            }
-            else {
-                Serial.println("777");
-                
-                if (last_movement == 2) {
+                    delay(50);
                     connectRight();
-                    ready = true;
+                    delay(50);
+                    connectRight();
+                    delay(50);
+                    connectRight();
+                    delay(50);
+                    connectRight();
+                    delay(50);
+                    connectRight();
+                    delay(50);
+                    connectRight();
+                    delay(50);
+                    goBackward(29);
+                    delay(2200);
+                    stopMovement();
+                    //delay(10000);
+                    state = 1;
                 }
-                else {
-                    connectLeft();
-                    ready = true;
-                }
-            }
+            
+            // else {
+            //     Serial.println("777");
+            //     goBackward();
+            //     delay(1500);
+            //     stopMovement();
+            //     //delay(10000);
+            //     state = 1;
+            // }
         }
         predSendorData = sensorData;
     }
-    goForward(30);
-    delay(1500);
-    state = 1;
+    // goBackward();
+    // delay(1000);
+    // stopMovement();
+    // delay(10000);
+    // state = 1;
 }
+
+// void Connection::connectForward(int &state) {
+
+//     while (state != 1) {
+//         refreshConnectPtr();
+//         read_sensor();
+//         Serial.println("sensorData");
+//         Serial.println(sensorData);
+//         // robotid.data = 9;
+//         // pubRobotId.publish( &robotid);
+//         if ((sensorData <= 370) && (move_counter < 20)) {
+//             connectLeft();
+//             move_counter++;
+//             Serial.println("111");
+//         }
+//         if ((sensorData <= 370) && (move_counter >= 20)) {
+//             connectRight();
+//             Serial.println("222");
+//         }
+//         else if (sensorData > 370) {
+//             Serial.println("333");
+//             // if (sensorData > predSendorData) {
+//             //     Serial.println("444");
+//                 if (last_movement == 2) {
+//                     Serial.println("555");
+//                     connectLeft();
+//                     delay(50);
+//                     connectLeft();
+//                     delay(50);
+//                     connectLeft();
+//                     delay(50);
+//                     // connectLeft();
+//                     // delay(50);
+//                     goForward(25);
+//                     delay(1500);
+//                     stopMovement();
+//                     //delay(10000);
+//                     state = 1;
+//                 }
+//                 else if (last_movement == 1) {
+//                     Serial.println("666");
+//                     // connectRight();
+//                     // delay(50);
+//                     // connectRight();
+//                     // delay(50);
+//                     // connectRight();
+//                     // delay(50);
+//                     // connectRight();
+//                     // delay(50);
+//                     goForward(25);
+//                     delay(1500);
+//                     stopMovement();
+//                     //delay(10000);
+//                     state = 1;
+//                 }
+            
+//             else {
+//                 Serial.println("777");
+//                 goForward(25);
+//                 delay(1500);
+//                 stopMovement();
+//                 //delay(10000);
+//                 state = 1;
+//             }
+//         }
+//         predSendorData = sensorData;
+//     }
+    // goBackward();
+    // delay(1000);
+    // stopMovement();
+    // delay(10000);
+    // state = 1;
+// }
 
 void Connection::connectBackward(int &state) {
 
@@ -143,6 +301,9 @@ void Connection::connectBackward(int &state) {
         stopMovement();
         delay(10000);
     }
+
+}    
+
 
 
 
@@ -195,7 +356,7 @@ void Connection::connectBackward(int &state) {
     // goBackward();
     // delay(1500);
     // state = 1;
-}
+
 
 void Connection::configured(uint8_t connection_side_id, uint8_t connection_state) {
 

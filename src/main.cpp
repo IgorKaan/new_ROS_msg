@@ -32,17 +32,17 @@ int correctValue;
 int targetTick;
 int distance;
 int angle;
-int sensor;
+int sensor, s2, s3, s4;
 int iprev;
 int tick;
 int i;
 int k;
 int state;
 
-uint8_t connection_side_id = 0;
-uint8_t connection_state = 0;
+uint8_t connection_side_id = -1;
+uint8_t connection_state = -1;
 uint8_t ready_to_connect = -1;
-uint8_t platformNumber = 7;
+uint8_t platformNumber = 2;
 uint8_t grubState = 0;
 
 bool moveForwardValue = 0;
@@ -93,11 +93,13 @@ class WiFiHardware {
   }
 };
 
+
 void hall() {
 
   i++;
   k = k + i;
-  Serial.println(i);
+  //Serial.println(i);
+  Serial.println("k=");
   Serial.println(k);
   i = 0;
 
@@ -109,19 +111,7 @@ void IRAM_ATTR isr() {
 
 }
 
-void rotateToAngle(int angle) {
 
-  tick = map(angle, -90, 90, 0, 34);
-  targetTick = tick - startPos;
-  if (targetTick > 0) {
-   while (k < targetTick) {
-    ledcWrite(0,220);               
-   }
-   ledcWrite(0,190);
-  } 
-  startPos = tick;
-
-}
 
 void timeMovementCallback(const ActionAtTime& msg) {
 
@@ -145,16 +135,24 @@ void connectionCallback(const ConnectionCfg& msg) {
 
 }
 
+void reconfigurationCallback(const Int8& msg) {
+
+  angle = msg.data;
+  Serial.println(angle);
+
+}
+
 void on_connect(const Int8& msg) {
 
   ready_to_connect = msg.data;
 
 }
 
-ros::Subscriber<ActionAtTime> sub("robot_movement/7", &timeMovementCallback);
-ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/7", &connectionCallback);
+ros::Subscriber<ActionAtTime> sub("robot_movement/2", &timeMovementCallback);
+ros::Subscriber<ConnectionCfg> subConnectionCfg("connectCfg/2", &connectionCallback);
+ros::Subscriber<std_msgs::Int8> axialBribge("reconfiguration/2", &reconfigurationCallback);
 ros::Subscriber<std_msgs::Int8> connectionState("on_position", &on_connect);
-ros::Subscriber<std_msgs::Int8> grubGfg("grub/7", &grubCallback);
+ros::Subscriber<std_msgs::Int8> grubGfg("grub/2", &grubCallback);
 
 std_msgs::Int8 robotid;
 
@@ -168,12 +166,51 @@ ros::Publisher pubRobotId("robot_id", &robotid);
 
 ros::NodeHandle_<WiFiHardware> nh;
 
+void refreshConnection() {
+
+  nh.spinOnce();
+  robotid.data = platformNumber;
+  pubRobotId.publish(&robotid);
+  Serial.println("refresh");
+
+}
+
+void rotateToAngleDown(int angle) {
+
+  tick = abs(angle/5);
+  k = 0;
+  while (k < tick)
+  {
+    refreshConnection();
+    ledcWrite(0,180);
+  }
+  if (k >= tick) {
+
+    ledcWrite(0, 150);
+  }
+}
+
+void rotateToAngleUp(int angle) {
+  tick = angle/5;
+  k = 0;
+  while (k < tick)
+  {
+    refreshConnection();
+    ledcWrite(0,120);
+  }
+  if (k >= tick) {
+
+    ledcWrite(0, 150);
+  }
+  
+}
+
 void setupWiFi() {
 
   WiFi.begin(ssid, password);
   Serial.print("\nConnecting to "); Serial.println(ssid);
   uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 20000) delay(500);
+  while (WiFi.status() != WL_CONNECTED && i++ < 2000) delay(500);
   if(i == 2001){
     Serial.print("Could not connect to"); Serial.println(ssid);
     while(1) delay(500);
@@ -184,51 +221,48 @@ void setupWiFi() {
 
 }
 
-void refreshConnection() {
-
-  nh.spinOnce();
-  robotid.data = platformNumber;
-  pubRobotId.publish(&robotid);
-  Serial.println("refresh");
-
-}
-
 
 void setup() {
 
   Serial.begin(115200);
   modulePlatform = MotorControl();
-  robot.initNodeRefresher(refreshConnection);
+  // robot.initNodeRefresher(refreshConnection);
   // setupWiFi();
   // nh.initNode();
   // nh.subscribe(sub);
   // nh.subscribe(subConnectionCfg);
   // nh.subscribe(connectionState);
   // nh.subscribe(grubGfg);
-  pinMode(15, INPUT);
-  ledcSetup(0, 50, 11);
-  ledcAttachPin(12, 0);
-  attachInterrupt(15,isr,CHANGE);
-  sei();
-  nh.advertise(pubRobotId);
-  robotid.data = platformNumber;
-  pubRobotId.publish( &robotid );
+  // nh.subscribe(axialBribge);
+  // pinMode(27, INPUT);
+  // ledcSetup(0, 50, 11);
+  // ledcAttachPin(12, 0);
+  // attachInterrupt(27,isr,CHANGE);
+  // sei();
+  // nh.advertise(pubRobotId);
+  // robotid.data = platformNumber;
+  // pubRobotId.publish( &robotid );
      
 }
 
 void loop() { 
-
-  modulePlatform.goForward(20);
-  delay(2500);
-  robot.leftGrabRelease();
-  robot.rightGrabRelease();
-  delay(2500);
-  robot.leftGrabCapture();
-  robot.rightGrabCapture();
-  delay(2500);
-  robot.leftGrabRelease();
-  robot.rightGrabRelease();
-  delay(2500);
+  // // robot.connectForward(state);
+  // // delay(300);
+  // // // sensor = analogRead(34);
+  // // s2 = analogRead(32);
+  // // s3 = analogRead(33);
+  // // // s4 = analogRead(35);
+  // // Serial.println("s2-----------------------");
+  // // Serial.println(s2);
+  // // Serial.println("s3-----------------------");
+  // // Serial.println(s3);
+  // // delay(500);
+  // // //Serial.println(s4);
+  // // //Serial.println(sensor);
+  // // delay(100);
+  // // modulePlatform.goForward(30);
+  // // rotateToAngleDown(90);
+  // // delay(3000);
   // nh.spinOnce();
   // modulePlatform.navigation(moveForwardValue,rotateValue,correctValue, actionTime); 
   // moveForwardValue = 0;
@@ -237,21 +271,75 @@ void loop() {
   // actionTime = 0;
   // robotid.data = platformNumber;
   // pubRobotId.publish( &robotid);
-  // Serial.println("here");
+  // //Serial.println("here");
   
-  // if ((connection_side_id != 0 || connection_state !=0) && configuredSended == 0) {
+  // if ((connection_side_id != -1 || connection_state != -1) && configuredSended == 0) {
 
-  //   robotid.data = platformNumber+20;
-  //   pubRobotId.publish(&robotid);
-  //   configuredSended = 1;
+  //   if ((connection_side_id == 1) && (connection_state == 0)) {
+
+  //     modulePlatform.rightGrabRelease();
+  //     delay(2500);
+  //     modulePlatform.rightGrabStop();
+  //     robotid.data = platformNumber+20;
+  //     pubRobotId.publish(&robotid);
+  //     connection_side_id = -1;
+  //     connection_state = -1;
+
+  //   }
+  //   if ((connection_side_id == 1) && (connection_state == 1)) {
+
+  //     modulePlatform.rightGrabCapture();
+  //     delay(2500);
+  //     modulePlatform.rightGrabStop();
+  //     robotid.data = platformNumber+20;
+  //     pubRobotId.publish(&robotid);
+  //     connection_side_id = -1;
+  //     connection_state = -1;
+
+  //   }
+  //   if ((connection_side_id == 3) && (connection_state == 0)) {
+
+  //     modulePlatform.leftGrabRelease();
+  //     delay(2500);
+  //     modulePlatform.leftGrabStop();
+  //     robotid.data = platformNumber+20;
+  //     pubRobotId.publish(&robotid);
+  //     connection_side_id = -1;
+  //     connection_state = -1;
+
+  //   }
+  //   if ((connection_side_id == 3) && (connection_state == 1)) {
+
+  //     modulePlatform.leftGrabCapture();
+  //     delay(2500);
+  //     modulePlatform.leftGrabStop();
+  //     robotid.data = platformNumber+20;
+  //     pubRobotId.publish(&robotid);
+  //     connection_side_id = -1;
+  //     connection_state = -1;
+
+  //   }
+
+  //   else if ((connection_side_id == 0) || (connection_side_id == 2)) {
+
+  //     delay(2500);
+  //     robotid.data = platformNumber+20;
+  //     pubRobotId.publish(&robotid);
+  //     connection_side_id = -1;
+  //     connection_state = -1;
+
+  //   }
+    
+  //   //configuredSended = 1;
 
   // }
 
   // if ((ready_to_connect == platformNumber) && (getConnectPosition == 0)) {
 
-  //   modulePlatform.goForward(25);
-  //   delay(1500);
-  //   state = 1;
+  //   //modulePlatform.goForward(25);
+  //   robot.connectForward(state);
+  //   //delay(1500);
+  //   //state = 1;
   //   if (state == 1) {
   //     robot.stopMovement();
   //     robotid.data = platformNumber+30;
@@ -263,31 +351,54 @@ void loop() {
 
   // if ((grubState == 1) && (grubLeftFinish == 0)) {
 
-  //     robot.leftGrabCapture();
-  //     delay(2500);
-  //     robot.leftGrabStop();
-  //     delay(10000);
-  //     robot.leftGrabRelease();
-  //     delay(2500);
-  //     robot.leftGrabStop();
-  //     grubLeftFinish = 1;
-  //     robotid.data = platformNumber+40;
-  //     pubRobotId.publish(&robotid);
-  //   }
-
-  // else if ((grubState == 2) && (grubRightFinish == 0)) {
-
-  //     robot.rightGrabCapture();
-  //     delay(2500);
-  //     robot.rightGrabStop();
-  //     delay(10000);
-  //     robot.rightGrabRelease();
-  //     delay(2500);
-  //     robot.rightGrabStop();
-  //     grubRightFinish = 1;
-  //     robotid.data = platformNumber+40;
-  //     pubRobotId.publish(&robotid);
+  //   modulePlatform.leftGrabCapture();
+  //   delay(2500);
+  //   modulePlatform.leftGrabStop();
+  //   grubLeftFinish = 1;
+  //   //robotid.data = platformNumber+40;
+  //   pubRobotId.publish(&robotid);
   // }
+
+  // if ((grubState == 2) && (grubRightFinish == 0)) {
+
+  //   modulePlatform.rightGrabCapture();
+  //   delay(2500);
+  //   modulePlatform.rightGrabStop();
+  //   grubRightFinish = 1;
+  //   //robotid.data = platformNumber+40;
+  //   pubRobotId.publish(&robotid);
+  // }
+
+  // if ((angle <= 90) && (angle > 0)) {
+
+  //   rotateToAngleUp(angle);
+  //   //Serial.println(angle);
+  //   //delay(2500);
+  //   angle = 0;
+
+  // }
+
+  // if ((angle >= -90) && (angle < 0)) {
+
+  //   Serial.println("121451252");
+  //   rotateToAngleDown(angle);
+  //   //delay(2500);
+  //   angle = 0;
+  // }
+  // Serial.println(angle);
+  modulePlatform.goForward(21);
+  delay(3000);
+  modulePlatform.goRight();
+  delay(3000);
+  modulePlatform.goBackward(21);
+  delay(3000);
+  modulePlatform.goLeft();
+  delay(3000);
+  modulePlatform.turnLeft();
+  delay(3000);
+  modulePlatform.turnRight();
+  delay(3000);
+
 
 }
   

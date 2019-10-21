@@ -19,7 +19,7 @@ class MotorControl
 
         void rightConnect(short time);
 
-        void goBackward();
+        void goBackward(short speed);
 
         void goLeft();
 
